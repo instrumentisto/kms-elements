@@ -744,11 +744,11 @@ kms_player_end_point_get_agnostic_for_pad (KmsPlayerEndpoint * self,
   GST_DEBUG_OBJECT (pad, "Prepare for input caps: %" GST_PTR_FORMAT, caps);
 
   /* TODO: Update latency probe to set valid and media type */
-  if (kms_utils_caps_is_audio (caps)) {
+  if (kms_utils_caps_are_audio (caps)) {
     GST_DEBUG_OBJECT (pad, "Detected audio caps");
     agnosticbin = kms_element_get_audio_agnosticbin (KMS_ELEMENT (self));
     kms_player_end_point_add_stat_probe (self, pad, KMS_MEDIA_TYPE_AUDIO);
-  } else if (kms_utils_caps_is_video (caps)) {
+  } else if (kms_utils_caps_are_video (caps)) {
     GST_DEBUG_OBJECT (pad, "Detected video caps");
     agnosticbin = kms_element_get_video_agnosticbin (KMS_ELEMENT (self));
     kms_player_end_point_add_stat_probe (self, pad, KMS_MEDIA_TYPE_VIDEO);
@@ -802,14 +802,14 @@ appsink_probe_query_appsrc_caps (GstPad * pad, GstPadProbeInfo * info,
 }
 
 static GstPadProbeReturn
-appsink_event_query_probe (GstPad * pad, GstPadProbeInfo * info, gpointer element)
+appsink_event_query_probe (GstPad * pad, GstPadProbeInfo * info,
+    gpointer element)
 {
   GstPadProbeType type = GST_PAD_PROBE_INFO_TYPE (info);
 
   if (type & GST_PAD_PROBE_TYPE_EVENT_DOWNSTREAM) {
     return appsink_probe_set_appsrc_caps (pad, info, element);
-  }
-  else if (type & GST_PAD_PROBE_TYPE_QUERY_DOWNSTREAM) {
+  } else if (type & GST_PAD_PROBE_TYPE_QUERY_DOWNSTREAM) {
     return appsink_probe_query_appsrc_caps (pad, info, element);
   }
 
@@ -887,7 +887,6 @@ static void
 kms_player_endpoint_uridecodebin_pad_removed (GstElement * element,
     GstPad * pad, KmsPlayerEndpoint * self)
 {
-  GstElement *appsink, *appsrc;
 
   GST_DEBUG_OBJECT (pad, "Pad removed");
 
@@ -895,17 +894,6 @@ kms_player_endpoint_uridecodebin_pad_removed (GstElement * element,
     return;
 
   kms_player_end_point_remove_stat_probe (self, pad);
-
-  appsink = g_object_steal_qdata (G_OBJECT (pad), appsink_quark ());
-  appsrc = g_object_steal_qdata (G_OBJECT (pad), appsrc_quark ());
-
-  if (appsink != NULL) {
-    kms_utils_bin_remove (GST_BIN (self->priv->pipeline), appsink);
-  }
-
-  if (appsrc != NULL) {
-    kms_utils_bin_remove (GST_BIN (self), appsrc);
-  }
 }
 
 static gboolean
@@ -1293,9 +1281,7 @@ kms_player_endpoint_uridecodebin_element_added (GstBin * bin,
               (gst_element_get_factory (element))), RTSPSRC) == 0) {
     g_object_set (G_OBJECT (element),
         "latency", self->priv->network_cache,
-        "drop-on-latency", TRUE,
-        "port-range", self->priv->port_range,
-        NULL);
+        "drop-on-latency", TRUE, "port-range", self->priv->port_range, NULL);
   }
 }
 
@@ -1339,6 +1325,7 @@ process_bus_message (GstBus * bus, GstMessage * msg, KmsPlayerEndpoint * self)
 
   gchar *dot_name = g_strdup_printf ("%s_bus_%d", GST_OBJECT_NAME (self),
       err_code);
+
   GST_DEBUG_BIN_TO_DOT_FILE_WITH_TS (GST_BIN (parent), GST_DEBUG_GRAPH_SHOW_ALL,
       dot_name);
   g_free (dot_name);
@@ -1362,8 +1349,7 @@ kms_player_endpoint_init (KmsPlayerEndpoint * self)
 
   self->priv->loop = kms_loop_new ();
   self->priv->pipeline = gst_pipeline_new ("internalpipeline");
-  self->priv->uridecodebin =
-      gst_element_factory_make ("uridecodebin", NULL);
+  self->priv->uridecodebin = gst_element_factory_make ("uridecodebin", NULL);
   self->priv->network_cache = NETWORK_CACHE_DEFAULT;
   self->priv->port_range = g_strdup (PORT_RANGE_DEFAULT);
 
