@@ -302,15 +302,11 @@ kms_webrtc_session_remote_sdp_add_ice_candidate (KmsWebrtcSession *
 
   if (sdp_sess->remote_sdp == NULL) {
     GST_CAT_LEVEL_LOG (GST_CAT_DEFAULT, dbg, self,
-        "Adding remote candidate to remote SDP:"
-        " Remote SDP still unset");
+        "Adding remote candidate to remote SDP:" " Remote SDP still unset");
     if (allow_error) {
-      GST_CAT_LEVEL_LOG (GST_CAT_DEFAULT, dbg, self,
-          "... (Will add later)");
-    }
-    else {
-      GST_CAT_LEVEL_LOG (GST_CAT_DEFAULT, dbg, self,
-          "... (Error)");
+      GST_CAT_LEVEL_LOG (GST_CAT_DEFAULT, dbg, self, "... (Will add later)");
+    } else {
+      GST_CAT_LEVEL_LOG (GST_CAT_DEFAULT, dbg, self, "... (Error)");
     }
     return;
   }
@@ -338,8 +334,8 @@ kms_webrtc_session_remote_sdp_add_ice_candidate (KmsWebrtcSession *
 }
 
 static void
-kms_webrtc_session_remote_sdp_add_stored_ice_candidates (KmsWebrtcSession *self,
-    gboolean allow_error)
+kms_webrtc_session_remote_sdp_add_stored_ice_candidates (KmsWebrtcSession *
+    self, gboolean allow_error)
 {
   guint i;
   guint len = g_slist_length (self->remote_candidates);
@@ -347,7 +343,8 @@ kms_webrtc_session_remote_sdp_add_stored_ice_candidates (KmsWebrtcSession *self,
   for (i = 0; i < len; i++) {
     KmsIceCandidate *candidate = g_slist_nth_data (self->remote_candidates, i);
 
-    kms_webrtc_session_remote_sdp_add_ice_candidate (self, candidate, allow_error);
+    kms_webrtc_session_remote_sdp_add_ice_candidate (self, candidate,
+        allow_error);
   }
 }
 
@@ -368,27 +365,20 @@ kms_webrtc_session_agent_add_ice_candidate (KmsWebrtcSession * self,
         "Adding remote candidate to ICE Agent:"
         " ICE Gathering not started yet");
     if (allow_error) {
-      GST_CAT_LEVEL_LOG (GST_CAT_DEFAULT, dbg, self,
-          "... (Will add later)");
-    }
-    else {
-      GST_CAT_LEVEL_LOG (GST_CAT_DEFAULT, dbg, self,
-          "... (Error)");
+      GST_CAT_LEVEL_LOG (GST_CAT_DEFAULT, dbg, self, "... (Will add later)");
+    } else {
+      GST_CAT_LEVEL_LOG (GST_CAT_DEFAULT, dbg, self, "... (Error)");
     }
     return allow_error;
   }
 
   if (sdp_sess->local_sdp == NULL) {
     GST_CAT_LEVEL_LOG (GST_CAT_DEFAULT, dbg, self,
-        "Adding remote candidate to ICE Agent:"
-        " Local SDP not generated yet");
+        "Adding remote candidate to ICE Agent:" " Local SDP not generated yet");
     if (allow_error) {
-      GST_CAT_LEVEL_LOG (GST_CAT_DEFAULT, dbg, self,
-          "... (Will add later)");
-    }
-    else {
-      GST_CAT_LEVEL_LOG (GST_CAT_DEFAULT, dbg, self,
-          "... (Error)");
+      GST_CAT_LEVEL_LOG (GST_CAT_DEFAULT, dbg, self, "... (Will add later)");
+    } else {
+      GST_CAT_LEVEL_LOG (GST_CAT_DEFAULT, dbg, self, "... (Error)");
     }
     return allow_error;
   }
@@ -440,8 +430,7 @@ kms_webrtc_session_agent_add_ice_candidate (KmsWebrtcSession * self,
     return FALSE;
   }
 
-  if (!kms_ice_base_agent_add_ice_candidate (self->agent, candidate,
-      stream_id)) {
+  if (!kms_ice_base_agent_add_ice_candidate (self->agent, candidate, stream_id)) {
     GST_ERROR_OBJECT (self,
         "Adding remote candidate to ICE Agent:"
         " Agent failed, stream_id: '%s'", stream_id);
@@ -465,7 +454,7 @@ kms_webrtc_session_agent_add_stored_ice_candidates (KmsWebrtcSession * self,
     KmsIceCandidate *candidate = g_slist_nth_data (self->remote_candidates, i);
 
     if (!kms_webrtc_session_agent_add_ice_candidate (self, candidate,
-        allow_error)) {
+            allow_error)) {
       return;
     }
   }
@@ -1539,8 +1528,7 @@ kms_webrtc_session_start_transport_send (KmsWebrtcSession * self,
     // Allow errors: FALSE, because at this point the remote SDP should have been
     // received already, and the gathering process is started already
     kms_webrtc_session_agent_add_stored_ice_candidates (self, FALSE);
-  }
-  else {
+  } else {
     GST_DEBUG_OBJECT (self, "Start transport:"
         " Not adding stored remote candidates (ICE Gathering not started)");
   }
@@ -1625,6 +1613,7 @@ kms_webrtc_session_parse_turn_url (KmsWebrtcSession * self)
 
     GString *safe_url = g_string_new ("<user:password>");
     gchar *separated_url = g_strrstr (self->turn_url, "@");
+
     if (separated_url == NULL) {
       g_string_append_c (safe_url, '@');
       g_string_append (safe_url, self->turn_url);
@@ -1763,8 +1752,7 @@ kms_webrtc_session_new_selected_pair_full (KmsIceBaseAgent * agent,
       "New candidate pair selected, local: '%s', remote: '%s'"
       ", stream_id: '%s', component_id: %d",
       kms_ice_candidate_get_candidate (lcandidate),
-      kms_ice_candidate_get_candidate (rcandidate),
-      stream_id, component_id);
+      kms_ice_candidate_get_candidate (rcandidate), stream_id, component_id);
 
   g_signal_emit (G_OBJECT (self),
       kms_webrtc_session_signals[SIGNAL_NEW_SELECTED_PAIR_FULL], 0, stream_id,
@@ -1774,7 +1762,8 @@ kms_webrtc_session_new_selected_pair_full (KmsIceBaseAgent * agent,
 static void
 kms_webrtc_session_init_ice_agent (KmsWebrtcSession * self)
 {
-  self->agent = KMS_ICE_BASE_AGENT (kms_ice_nice_agent_new (self->context));
+  self->agent =
+      KMS_ICE_BASE_AGENT (kms_ice_nice_agent_new (self->context, NULL));
 
   kms_ice_base_agent_run_agent (self->agent);
 

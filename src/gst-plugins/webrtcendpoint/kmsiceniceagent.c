@@ -220,12 +220,25 @@ kms_ice_nice_agent_new_selected_pair_full (NiceAgent * agent,
 
 end:
   g_free (stream_id_str);
-  if (local_candidate) { g_object_unref (local_candidate); }
-  if (remote_candidate) { g_object_unref (remote_candidate); }
+  if (local_candidate) {
+    g_object_unref (local_candidate);
+  }
+  if (remote_candidate) {
+    g_object_unref (remote_candidate);
+  }
+}
+
+void
+kms_add_local_addrs (gpointer addrs, NiceAgent * agent)
+{
+  NiceAddress *nice_addrs = nice_address_new ();
+
+  nice_address_set_from_string (nice_addrs, addrs);
+  nice_agent_add_local_address (agent, nice_addrs);
 }
 
 KmsIceNiceAgent *
-kms_ice_nice_agent_new (GMainContext * context)
+kms_ice_nice_agent_new (GMainContext * context, GSList * addrs)
 {
   GObject *obj;
   KmsIceNiceAgent *self;
@@ -237,6 +250,10 @@ kms_ice_nice_agent_new (GMainContext * context)
   GST_DEBUG_OBJECT (self, "Create new instance, compatibility level: RFC5245");
   self->priv->agent =
       nice_agent_new (self->priv->context, NICE_COMPATIBILITY_RFC5245);
+
+  if (addrs != NULL && g_slist_length (addrs) > 0) {
+    g_slist_foreach (addrs, (GFunc) kms_add_local_addrs, self->priv->agent);
+  }
 
   GST_DEBUG_OBJECT (self, "Disable UPNP support");
   g_object_set (self->priv->agent, "upnp", FALSE, NULL);
