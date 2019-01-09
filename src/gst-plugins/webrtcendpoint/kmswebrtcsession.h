@@ -83,6 +83,8 @@ struct _KmsWebrtcSession
   KmsRemovePad remove_pad_cb;
   gpointer cb_data;
   GDestroyNotify destroy_data;
+
+  GSList * localAddrs;
 };
 
 struct _KmsWebrtcSessionClass

@@ -55,6 +55,7 @@ G_DEFINE_TYPE (KmsWebrtcSession, kms_webrtc_session, KMS_TYPE_BASE_RTP_SESSION);
 #define DEFAULT_STUN_TURN_URL NULL
 #define DEFAULT_DATA_CHANNELS_SUPPORTED FALSE
 #define DEFAULT_PEM_CERTIFICATE NULL
+#define DEFAULT_LOCAL_ADDRS NULL
 
 #define IP_VERSION_6 6
 
@@ -87,6 +88,7 @@ enum
   PROP_TURN_URL,                /* user:password@address:port?transport=[udp|tcp|tls] */
   PROP_DATA_CHANNEL_SUPPORTED,
   PROP_PEM_CERTIFICATE,
+  PROP_LOCAL_ADDRS,
   N_PROPERTIES
 };
 
@@ -1633,6 +1635,15 @@ kms_webrtc_session_parse_turn_url (KmsWebrtcSession * self)
   g_match_info_free (match_info);
 }
 
+static GSList *
+kms_webrtc_session_parse_local_addrs (gchar * value)
+{
+  //TODO: Add many IPs
+  GSList *addrs_list = g_slist_append (NULL, value);
+
+  return addrs_list;
+}
+
 static void
 kms_webrtc_session_set_property (GObject * object, guint prop_id,
     const GValue * value, GParamSpec * pspec)
@@ -1657,6 +1668,10 @@ kms_webrtc_session_set_property (GObject * object, guint prop_id,
     case PROP_PEM_CERTIFICATE:
       g_free (self->pem_certificate);
       self->pem_certificate = g_value_dup_string (value);
+      break;
+    case PROP_LOCAL_ADDRS:
+      self->localAddrs =
+          kms_webrtc_session_parse_local_addrs (g_value_dup_string (value));
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -1690,6 +1705,9 @@ kms_webrtc_session_get_property (GObject * object, guint prop_id,
     case PROP_PEM_CERTIFICATE:
       g_value_set_string (value, self->pem_certificate);
       break;
+    case PROP_LOCAL_ADDRS:
+      g_value_set_object (value, self->localAddrs);
+      break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
       break;
@@ -1715,6 +1733,7 @@ kms_webrtc_session_finalize (GObject * object)
   g_free (self->turn_password);
   g_free (self->turn_address);
   g_free (self->pem_certificate);
+  g_free (self->localAddrs);
 
   if (self->destroy_data != NULL && self->cb_data != NULL) {
     self->destroy_data (self->cb_data);
@@ -1763,7 +1782,8 @@ static void
 kms_webrtc_session_init_ice_agent (KmsWebrtcSession * self)
 {
   self->agent =
-      KMS_ICE_BASE_AGENT (kms_ice_nice_agent_new (self->context, NULL));
+      KMS_ICE_BASE_AGENT (kms_ice_nice_agent_new (self->context,
+          self->localAddrs));
 
   kms_ice_base_agent_run_agent (self->agent);
 
@@ -1920,6 +1940,12 @@ kms_webrtc_session_class_init (KmsWebrtcSessionClass * klass)
           "True if data channels are negotiated and supported",
           DEFAULT_DATA_CHANNELS_SUPPORTED,
           G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
+
+  g_object_class_install_property (gobject_class, PROP_LOCAL_ADDRS,
+      g_param_spec_string ("local-ips",
+          "LocalIPs",
+          "Local IP addresses for generate local ICE Candidates",
+          DEFAULT_LOCAL_ADDRS, G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 
   /**
   * KmsWebrtcSession::on-ice-candidate:
