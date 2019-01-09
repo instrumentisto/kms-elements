@@ -744,11 +744,11 @@ kms_player_end_point_get_agnostic_for_pad (KmsPlayerEndpoint * self,
   GST_DEBUG_OBJECT (pad, "Prepare for input caps: %" GST_PTR_FORMAT, caps);
 
   /* TODO: Update latency probe to set valid and media type */
-  if (kms_utils_caps_are_audio (caps)) {
+  if (kms_utils_caps_is_audio (caps)) {
     GST_DEBUG_OBJECT (pad, "Detected audio caps");
     agnosticbin = kms_element_get_audio_agnosticbin (KMS_ELEMENT (self));
     kms_player_end_point_add_stat_probe (self, pad, KMS_MEDIA_TYPE_AUDIO);
-  } else if (kms_utils_caps_are_video (caps)) {
+  } else if (kms_utils_caps_is_video (caps)) {
     GST_DEBUG_OBJECT (pad, "Detected video caps");
     agnosticbin = kms_element_get_video_agnosticbin (KMS_ELEMENT (self));
     kms_player_end_point_add_stat_probe (self, pad, KMS_MEDIA_TYPE_VIDEO);
@@ -887,6 +887,7 @@ static void
 kms_player_endpoint_uridecodebin_pad_removed (GstElement * element,
     GstPad * pad, KmsPlayerEndpoint * self)
 {
+  GstElement *appsink, *appsrc;
 
   GST_DEBUG_OBJECT (pad, "Pad removed");
 
@@ -894,6 +895,17 @@ kms_player_endpoint_uridecodebin_pad_removed (GstElement * element,
     return;
 
   kms_player_end_point_remove_stat_probe (self, pad);
+
+  appsink = g_object_steal_qdata (G_OBJECT (pad), appsink_quark ());
+  appsrc = g_object_steal_qdata (G_OBJECT (pad), appsrc_quark ());
+
+  if (appsink != NULL) {
+    kms_utils_bin_remove (GST_BIN (self->priv->pipeline), appsink);
+  }
+
+  if (appsrc != NULL) {
+    kms_utils_bin_remove (GST_BIN (self), appsrc);
+  }
 }
 
 static gboolean
