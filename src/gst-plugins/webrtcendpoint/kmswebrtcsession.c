@@ -1784,6 +1784,8 @@ kms_webrtc_session_init_ice_agent (KmsWebrtcSession * self)
   self->agent =
       KMS_ICE_BASE_AGENT (kms_ice_nice_agent_new (self->context,
           self->localAddrs));
+  GST_INFO_OBJECT (self, "Init new ICE Agent with described IP addresses: %d",
+      g_slist_length (self->localAddrs));
 
   kms_ice_base_agent_run_agent (self->agent);
 

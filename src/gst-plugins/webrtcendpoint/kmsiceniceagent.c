@@ -231,6 +231,7 @@ end:
 void
 kms_add_local_addrs (gpointer addrs, NiceAgent * agent)
 {
+  GST_DEBUG_OBJECT (agent, "Add new ICE address: %s", (char *) addrs);
   NiceAddress *nice_addrs = nice_address_new ();
 
   nice_address_set_from_string (nice_addrs, addrs);
@@ -248,6 +249,9 @@ kms_ice_nice_agent_new (GMainContext * context, GSList * addrs)
   self->priv->context = context;
 
   GST_DEBUG_OBJECT (self, "Create new instance, compatibility level: RFC5245");
+  GST_DEBUG_OBJECT (self, "External addresses length: %d",
+      g_slist_length (addrs));
+
   self->priv->agent =
       nice_agent_new (self->priv->context, NICE_COMPATIBILITY_RFC5245);
 
