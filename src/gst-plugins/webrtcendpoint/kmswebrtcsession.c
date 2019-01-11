@@ -55,7 +55,7 @@ G_DEFINE_TYPE (KmsWebrtcSession, kms_webrtc_session, KMS_TYPE_BASE_RTP_SESSION);
 #define DEFAULT_STUN_TURN_URL NULL
 #define DEFAULT_DATA_CHANNELS_SUPPORTED FALSE
 #define DEFAULT_PEM_CERTIFICATE NULL
-#define DEFAULT_LOCAL_ADDRS NULL
+#define DEFAULT_EXTERNAL_IPS NULL
 
 #define IP_VERSION_6 6
 
@@ -88,7 +88,7 @@ enum
   PROP_TURN_URL,                /* user:password@address:port?transport=[udp|tcp|tls] */
   PROP_DATA_CHANNEL_SUPPORTED,
   PROP_PEM_CERTIFICATE,
-  PROP_LOCAL_ADDRS,
+  PROP_EXTERNAL_IPS,
   N_PROPERTIES
 };
 
@@ -1635,15 +1635,6 @@ kms_webrtc_session_parse_turn_url (KmsWebrtcSession * self)
   g_match_info_free (match_info);
 }
 
-static GSList *
-kms_webrtc_session_parse_local_addrs (gchar * value)
-{
-  //TODO: Add many IPs
-  GSList *addrs_list = g_slist_append (NULL, value);
-
-  return addrs_list;
-}
-
 static void
 kms_webrtc_session_set_property (GObject * object, guint prop_id,
     const GValue * value, GParamSpec * pspec)
@@ -1669,9 +1660,9 @@ kms_webrtc_session_set_property (GObject * object, guint prop_id,
       g_free (self->pem_certificate);
       self->pem_certificate = g_value_dup_string (value);
       break;
-    case PROP_LOCAL_ADDRS:
-      self->localAddrs =
-          kms_webrtc_session_parse_local_addrs (g_value_dup_string (value));
+    case PROP_EXTERNAL_IPS:
+      g_free (self->external_ips);
+      self->external_ips = g_value_dup_string (value);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -1705,8 +1696,8 @@ kms_webrtc_session_get_property (GObject * object, guint prop_id,
     case PROP_PEM_CERTIFICATE:
       g_value_set_string (value, self->pem_certificate);
       break;
-    case PROP_LOCAL_ADDRS:
-      g_value_set_object (value, self->localAddrs);
+    case PROP_EXTERNAL_IPS:
+      g_value_set_string (value, self->external_ips);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -1733,7 +1724,7 @@ kms_webrtc_session_finalize (GObject * object)
   g_free (self->turn_password);
   g_free (self->turn_address);
   g_free (self->pem_certificate);
-  g_free (self->localAddrs);
+  g_free (self->external_ips);
 
   if (self->destroy_data != NULL && self->cb_data != NULL) {
     self->destroy_data (self->cb_data);
@@ -1778,14 +1769,24 @@ kms_webrtc_session_new_selected_pair_full (KmsIceBaseAgent * agent,
       component_id, lcandidate, rcandidate);
 }
 
+static GSList *
+kms_parse_external_ips (gchar * ips)
+{
+  if (ips == NULL) {
+    return NULL;
+  }
+  return g_slist_append (NULL, ips);
+}
+
 static void
 kms_webrtc_session_init_ice_agent (KmsWebrtcSession * self)
 {
+  //TODO: Add external ips to agent.
   self->agent =
       KMS_ICE_BASE_AGENT (kms_ice_nice_agent_new (self->context,
-          self->localAddrs));
-  GST_INFO_OBJECT (self, "Init new ICE Agent with described IP addresses: %d",
-      g_slist_length (self->localAddrs));
+          kms_parse_external_ips (self->external_ips)));
+  GST_INFO_OBJECT (self, "Init new ICE Agent with described IP addresses: %s",
+      self->external_ips);
 
   kms_ice_base_agent_run_agent (self->agent);
 
@@ -1844,6 +1845,7 @@ kms_webrtc_session_init (KmsWebrtcSession * self)
   self->stun_server_port = DEFAULT_STUN_SERVER_PORT;
   self->turn_url = DEFAULT_STUN_TURN_URL;
   self->gather_started = FALSE;
+  self->external_ips = DEFAULT_EXTERNAL_IPS;
 
   self->data_channels = g_hash_table_new_full (g_direct_hash,
       g_direct_equal, NULL, (GDestroyNotify) kms_ref_struct_unref);
@@ -1943,11 +1945,11 @@ kms_webrtc_session_class_init (KmsWebrtcSessionClass * klass)
           DEFAULT_DATA_CHANNELS_SUPPORTED,
           G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 
-  g_object_class_install_property (gobject_class, PROP_LOCAL_ADDRS,
-      g_param_spec_string ("local-ips",
-          "LocalIPs",
+  g_object_class_install_property (gobject_class, PROP_EXTERNAL_IPS,
+      g_param_spec_string ("external-ips",
+          "ExternalIPs",
           "Local IP addresses for generate local ICE Candidates",
-          DEFAULT_LOCAL_ADDRS, G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
+          DEFAULT_EXTERNAL_IPS, G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
   /**
   * KmsWebrtcSession::on-ice-candidate:
