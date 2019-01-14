@@ -1775,7 +1775,7 @@ kms_parse_external_ips (gchar * ips)
   if (ips == NULL) {
     return NULL;
   }
-  GSList *ips_list = g_slist_alloc ();
+  GSList *ips_list = NULL;
   gchar **tokens = NULL;
   guint i;
 
