@@ -1776,14 +1776,18 @@ kms_parse_external_ips (gchar * ips)
     return NULL;
   }
   GSList *ips_list = g_slist_alloc ();
-  gchar **ips_strings = g_strsplit (",", ips, -1);
-  gchar **ptr;
+  gchar **tokens = NULL;
+  guint i;
 
-  for (ptr = ips_strings; *ptr; ptr++) {
-    GST_DEBUG ("Add external IP: %s to IPs list", (char *) ptr);
-    ips_list = g_slist_append (ips_list, ptr);
+  tokens = g_strsplit (ips, ",", -1);
+  for (i = 0; tokens[i]; i++) {
+    if (tokens[i] != NULL) {
+      GST_DEBUG ("Add external IP: %s to IPs list", (char *) tokens[i]);
+      ips_list = g_slist_append (ips_list, tokens[i]);
+    }
+
   }
-
+  g_free (tokens);
   return ips_list;
 }
 
