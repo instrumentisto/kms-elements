@@ -1775,7 +1775,16 @@ kms_parse_external_ips (gchar * ips)
   if (ips == NULL) {
     return NULL;
   }
-  return g_slist_append (NULL, ips);
+  GSList *ips_list = g_slist_alloc ();
+  gchar **ips_strings = g_strsplit (",", ips, -1);
+  gchar **ptr;
+
+  for (ptr = ips_strings; *ptr; ptr++) {
+    GST_DEBUG ("Add external IP: %s to IPs list", (char *) ptr);
+    ips_list = g_slist_append (ips_list, ptr);
+  }
+
+  return ips_list;
 }
 
 static void
