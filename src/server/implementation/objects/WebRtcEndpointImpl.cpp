@@ -515,7 +515,7 @@ WebRtcEndpointImpl::WebRtcEndpointImpl (const boost::property_tree::ptree &conf,
   }
 
   if (!externalIPs.empty() ) {
-    g_object_set (G_OBJECT (element), "local-ips", externalIPs.c_str(), NULL);
+    g_object_set (G_OBJECT (element), "external-ips", externalIPs.c_str(), NULL);
   }
 
 
