@@ -2511,6 +2511,7 @@ on_ice_candidate_check_ip (GstElement * self, gchar * sess_id,
   const gchar *candidate_ip;
 
   candidate_ip = kms_ice_candidate_get_address (candidate);
+
   assert_equals_string (candidate_ip, expected_ip);
 }
 
@@ -2541,14 +2542,12 @@ GST_START_TEST (set_external_ips_test)
 
   audio_codecs_array = create_codecs_array (audio_codecs);
   video_codecs_array = create_codecs_array (video_codecs);
-
   g_object_set (webrtcendpoint, "num-audio-medias", 1, "audio-codecs",
       g_array_ref (audio_codecs_array), "num-video-medias", 1, "video-codecs",
       g_array_ref (video_codecs_array), NULL);
 
   g_array_unref (audio_codecs_array);
   g_array_unref (video_codecs_array);
-
   g_signal_connect (G_OBJECT (webrtcendpoint), "on-ice-candidate",
       G_CALLBACK (on_ice_candidate_check_ip), "127.0.0.1");
 
@@ -2562,7 +2561,6 @@ GST_START_TEST (set_external_ips_test)
   fail_unless (ret);
   g_object_unref (webrtcendpoint);
   g_free (sess_id);
-
 }
 
 GST_END_TEST

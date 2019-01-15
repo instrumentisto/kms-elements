@@ -552,9 +552,8 @@ kms_webrtc_endpoint_finalize (GObject * object)
   g_free (self->priv->stun_server_ip);
   g_free (self->priv->turn_url);
   g_free (self->priv->pem_certificate);
-  if (self->priv->external_ips != NULL) {
-    g_free (self->priv->external_ips);
-  }
+  g_free (self->priv->external_ips);
+
   g_main_context_unref (self->priv->context);
 
   /* chain up */

@@ -1724,12 +1724,8 @@ kms_webrtc_session_finalize (GObject * object)
   g_free (self->turn_password);
   g_free (self->turn_address);
   g_free (self->pem_certificate);
-  if (self->external_ips) {
-    g_free (self->external_ips);
-  }
-  if (self->ip_list != NULL) {
-    g_slist_free (self->ip_list);
-  }
+  g_free (self->external_ips);
+  g_slist_free (self->ip_list);
 
   if (self->destroy_data != NULL && self->cb_data != NULL) {
     self->destroy_data (self->cb_data);
@@ -1774,6 +1770,13 @@ kms_webrtc_session_new_selected_pair_full (KmsIceBaseAgent * agent,
       component_id, lcandidate, rcandidate);
 }
 
+/**
+ * Parse comma separated string which contains IP addresses for gathering ICE Candidates
+ * into GSList *
+ *
+ * @param ips comma separated string
+ * @return GSList *
+ */
 static GSList *
 kms_parse_external_ips (gchar * ips)
 {
@@ -1787,10 +1790,8 @@ kms_parse_external_ips (gchar * ips)
   tokens = g_strsplit (ips, ",", -1);
   for (i = 0; tokens[i]; i++) {
     if (tokens[i] != NULL) {
-      GST_DEBUG ("Add external IP: %s to IPs list", (char *) tokens[i]);
       ips_list = g_slist_append (ips_list, tokens[i]);
     }
-
   }
   g_free (tokens);
   return ips_list;
@@ -1799,17 +1800,11 @@ kms_parse_external_ips (gchar * ips)
 static void
 kms_webrtc_session_init_ice_agent (KmsWebrtcSession * self)
 {
-  if (self->ip_list != NULL) {
-    g_slist_free (self->ip_list);
-  }
-
+  g_slist_free (self->ip_list);
   self->ip_list = kms_parse_external_ips (self->external_ips);
   self->agent =
       KMS_ICE_BASE_AGENT (kms_ice_nice_agent_new (self->context,
           self->ip_list));
-  GST_INFO_OBJECT (self, "Init new ICE Agent with described IP addresses: %s",
-      self->external_ips);
-
   kms_ice_base_agent_run_agent (self->agent);
 
   g_signal_connect (self->agent, "on-ice-candidate",

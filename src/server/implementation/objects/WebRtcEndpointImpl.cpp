@@ -518,7 +518,6 @@ WebRtcEndpointImpl::WebRtcEndpointImpl (const boost::property_tree::ptree &conf,
     g_object_set (G_OBJECT (element), "external-ips", externalIPs.c_str(), NULL);
   }
 
-
   switch (certificateKeyType->getValue () ) {
   case CertificateKeyType::RSA: {
     if (defaultCertificateRSA != "") {
