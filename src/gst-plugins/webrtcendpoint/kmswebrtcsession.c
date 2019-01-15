@@ -1724,8 +1724,12 @@ kms_webrtc_session_finalize (GObject * object)
   g_free (self->turn_password);
   g_free (self->turn_address);
   g_free (self->pem_certificate);
-  g_free (self->external_ips);
-  g_free (self->ip_list);
+  if (self->external_ips) {
+    g_free (self->external_ips);
+  }
+  if (self->ip_list != NULL) {
+    g_slist_free (self->ip_list);
+  }
 
   if (self->destroy_data != NULL && self->cb_data != NULL) {
     self->destroy_data (self->cb_data);
@@ -1795,7 +1799,10 @@ kms_parse_external_ips (gchar * ips)
 static void
 kms_webrtc_session_init_ice_agent (KmsWebrtcSession * self)
 {
-  g_free (self->ip_list);
+  if (self->ip_list != NULL) {
+    g_slist_free (self->ip_list);
+  }
+
   self->ip_list = kms_parse_external_ips (self->external_ips);
   self->agent =
       KMS_ICE_BASE_AGENT (kms_ice_nice_agent_new (self->context,
