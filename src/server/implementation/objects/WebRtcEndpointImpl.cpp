@@ -86,7 +86,7 @@ remove_not_supported_codecs_from_array (GstElement *element, GArray *codecs)
 
     for (auto &supported_codec : supported_codecs) {
 
-      if (boost::istarts_with (codec_name, supported_codec) ) {
+      if (boost::istarts_with(codec_name, supported_codec)) {
         supported = TRUE;
         break;
       }
@@ -126,7 +126,7 @@ check_support_for_h264 ()
     return;
   }
 
-  supported_codecs.emplace_back ("H264");
+  supported_codecs.emplace_back("H264");
   gst_object_unref (plugin);
 }
 
@@ -285,11 +285,11 @@ void WebRtcEndpointImpl::newSelectedPairFull (gchar *sessId,
   std::map<std::string, std::shared_ptr <IceCandidatePair>>::iterator it;
 
   GST_DEBUG_OBJECT (element,
-                    "New candidate pair selected, local: '%s', remote: '%s'"
-                    ", stream_id: '%s', component_id: %d",
-                    kms_ice_candidate_get_candidate (localCandidate),
-                    kms_ice_candidate_get_candidate (remoteCandidate),
-                    streamId, componentId);
+      "New candidate pair selected, local: '%s', remote: '%s'"
+      ", stream_id: '%s', component_id: %d",
+      kms_ice_candidate_get_candidate (localCandidate),
+      kms_ice_candidate_get_candidate (remoteCandidate),
+      streamId, componentId);
 
   candidatePair = std::make_shared< IceCandidatePair > (streamId,
                   componentId,
@@ -667,8 +667,8 @@ WebRtcEndpointImpl::addIceCandidate (std::shared_ptr<IceCandidate> candidate)
   std::string cand_str = candidate->getCandidate();
   std::string mid_str = candidate->getSdpMid ();
   guint8 sdp_m_line_index = candidate->getSdpMLineIndex ();
-  KmsIceCandidate *cand = kms_ice_candidate_new (
-                            cand_str.c_str(), mid_str.c_str(), sdp_m_line_index, nullptr);
+  KmsIceCandidate *cand = kms_ice_candidate_new(
+      cand_str.c_str(), mid_str.c_str(), sdp_m_line_index, nullptr);
 
   if (cand) {
     g_signal_emit_by_name (element, "add-ice-candidate", this->sessId.c_str (),
