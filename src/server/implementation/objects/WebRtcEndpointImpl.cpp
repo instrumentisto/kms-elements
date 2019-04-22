@@ -489,6 +489,7 @@ WebRtcEndpointImpl::WebRtcEndpointImpl (const boost::property_tree::ptree &conf,
   }
 
     std::string externalIPs;
+    GST_INFO("INIT EXTERNAL IPS");
   try {
     externalIPs = getConfigValue <std::string, WebRtcEndpoint> (&externalIPs, "externalIPs");
     GST_INFO ("Describe external IPs: %s", externalIPs.c_str() );
