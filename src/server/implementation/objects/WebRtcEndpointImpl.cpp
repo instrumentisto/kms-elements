@@ -490,10 +490,10 @@ WebRtcEndpointImpl::WebRtcEndpointImpl (const boost::property_tree::ptree &conf,
 
     std::string externalIPs;
   if (getConfigValue <std::string, WebRtcEndpoint> (&externalIPs, "externalIPs")) {
-      GST_INFO("Describe external IPs: %s", externalIPs.c_str());
+      GST_INFO ("Describe external IPs: %s", externalIPs.c_str());
       g_object_set (G_OBJECT (element), "external-ips", externalIPs.c_str(), NULL);
   }else{
-      GST_INFO("External IP address not found in config;"
+      GST_INFO ("External IP address not found in config;"
                "Discover IP's automatically");
   }
 
